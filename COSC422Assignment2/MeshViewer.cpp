@@ -20,6 +20,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <GL/freeglut.h>
+#include "loadTGA.h"
 using namespace std;
 
 
@@ -29,10 +30,43 @@ float modelScale;
 float xc, yc, zc;
 float rotn_x = 0.0, rotn_y = 0.0;
 GLuint vaoID;
-GLuint mvpMatrixLoc, mvMatrixLoc, norMatrixLoc, lgtLoc, wireLoc;
+GLuint mvpMatrixLoc, mvMatrixLoc, norMatrixLoc, lgtLoc, wireLoc, textureModeLoc;
 glm::mat4 view, projView;
 int num_Elems;
 bool wireframe = false;
+
+//Camera Globals
+float camX = 0.0;
+float camZ = 4.0;
+float camY = 0.0;
+glm::vec3 cameraPos = glm::vec3(camX, camY, camZ);
+glm::vec3 cameraFront = glm::vec3(0.0, 0.0, 0.0);
+glm::vec3 cameraUp = glm::vec3(0.0, 1.0, 0.0);
+
+//Model Globals
+float scaleFactor = 1.0;
+
+//Texture Globals
+bool textureMode = false;
+
+
+void loadTextures()
+{
+	const char* filename[3] = { "./Textures/PENCIL0.tga", "./Textures/PENCIL1.tga", "./TexturesPENCIL2.tga" };
+	GLuint texID[3];
+	glGenTextures(3, texID);
+
+	for (int i = 0; i < 3; i++)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);  //Texture unit
+		glBindTexture(GL_TEXTURE_2D, texID[i]);
+		loadTGA(filename[i]);
+
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+}
 
 //Loads a shader file and returns the reference to a shader object
 GLuint loadShader(GLenum shaderType, string filename)
@@ -88,7 +122,7 @@ void initialize()
 	float CDR = M_PI / 180.0f;
 
 	//============= Load mesh ==================
-	if (!OpenMesh::IO::read_mesh(mesh, "Camel.off"))
+	if (!OpenMesh::IO::read_mesh(mesh, "./Models/dolphin.obj"))
 	{
 		cerr << "Mesh file read error.\n";
 	}
@@ -205,10 +239,11 @@ void initialize()
 	norMatrixLoc = glGetUniformLocation(program, "norMatrix");
 	wireLoc = glGetUniformLocation(program, "wireMode");
 	lgtLoc = glGetUniformLocation(program, "lightPos");
+	textureModeLoc = glGetUniformLocation(program, "textureMode");
 	glm::vec4 light = glm::vec4(5.0, 5.0, 10.0, 1.0);
 	glm::mat4 proj;
 	proj = glm::perspective(60.0f * CDR, 1.0f, 2.0f, 10.0f);  //perspective projection matrix
-	view = glm::lookAt(glm::vec3(0, 0, 4.0), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0)); //view matrix
+	view = glm::lookAt(cameraPos, cameraFront, cameraUp); //view matrix
 	projView = proj * view;
 	glm::vec4 lightEye = view * light;
 	glUniform4fv(lgtLoc, 1, &lightEye[0]);
@@ -220,6 +255,14 @@ void initialize()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);   
 }
 
+
+//Adjsut the zoom on the mode by increasing/decreasing the scale factor.
+void adjustZoom(int direction) {
+	if ((direction < 0 && scaleFactor >= 1.0) || (direction > 0 && scaleFactor < 2.0)) {
+		scaleFactor += 0.1 * direction;
+	}
+}
+
 //Callback function for special keyboard events
 void special(int key, int x, int y)
 {
@@ -227,6 +270,8 @@ void special(int key, int x, int y)
 	else if (key == GLUT_KEY_RIGHT) rotn_y += 5.0;
 	else if (key == GLUT_KEY_UP) rotn_x -= 5.0;
 	else if (key == GLUT_KEY_DOWN) rotn_x += 5.0;
+	else if (key == GLUT_KEY_PAGE_DOWN) adjustZoom(-1);
+	else if (key == GLUT_KEY_PAGE_UP) adjustZoom(1);
 	glutPostRedisplay();
 }
 
@@ -234,6 +279,7 @@ void special(int key, int x, int y)
 void keyboard(unsigned char key, int x, int y)
 {
 	if (key == 'w') wireframe = !wireframe;
+	if (key == ' ') textureMode = !textureMode;
 	if(wireframe) 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	else 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glutPostRedisplay();
@@ -246,7 +292,7 @@ void display()
 	glm::mat4 matrix = glm::mat4(1.0);
 	matrix = glm::rotate(matrix, rotn_x * CDR, glm::vec3(1.0, 0.0, 0.0));  //rotation about x
 	matrix = glm::rotate(matrix, rotn_y * CDR, glm::vec3(0.0, 1.0, 0.0));  //rotation about y
-	matrix = glm::scale(matrix, glm::vec3(modelScale, modelScale, modelScale));
+	matrix = glm::scale(matrix, glm::vec3(modelScale, modelScale, modelScale) * scaleFactor);
 	matrix = glm::translate(matrix, glm::vec3(-xc, -yc, -zc));
 
 	glm::mat4 viewMatrix = view * matrix;		//The model-view matrix
@@ -264,7 +310,7 @@ void display()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glBindVertexArray(vaoID);
-	glDrawElements(GL_TRIANGLES, num_Elems, GL_UNSIGNED_SHORT, NULL);
+	glDrawElements(GL_TRIANGLES_ADJACENCY, num_Elems, GL_UNSIGNED_SHORT, NULL);
 
 	glFlush();
 }

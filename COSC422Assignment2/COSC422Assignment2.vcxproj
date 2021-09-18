@@ -147,7 +147,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="MeshViewer.frag" />
+    <None Include="MeshViewer.geom" />
     <None Include="MeshViewer.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="loadTGA.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

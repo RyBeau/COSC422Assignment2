@@ -26,5 +26,13 @@
     <None Include="MeshViewer.vert">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="MeshViewer.geom">
+      <Filter>Source Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="loadTGA.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
