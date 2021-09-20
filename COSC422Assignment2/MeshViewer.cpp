@@ -162,7 +162,7 @@ void initialize()
 	int num_faces = mesh.n_faces();
 	float* vertPos = new float[num_verts * 3];
 	float* vertNorm = new float[num_verts * 3];
-	num_Elems = num_faces * 3;
+	num_Elems = num_faces * 6;
 	short* elems = new short[num_Elems];   //Asumption: Triangle mesh
 
 	if (!mesh.has_vertex_normals())
@@ -174,8 +174,9 @@ void initialize()
 
 	MyMesh::VertexIter vit;  //A vertex iterator
 	MyMesh::FaceIter fit;    //A face iterator
-	MyMesh::FaceVertexIter fvit; //Face-vertex iterator
+	MyMesh::FaceHalfedgeIter hvit; //Face-vertex iterator
 	OpenMesh::VertexHandle verH1, verH2;
+	OpenMesh::HalfedgeHandle heH;
 	OpenMesh::FaceHandle facH;
 	MyMesh::Point pos;
 	MyMesh::Normal norm;
@@ -201,11 +202,13 @@ void initialize()
 	for (fit = mesh.faces_begin(); fit != mesh.faces_end(); fit++)
 	{
 		facH = *fit;
-		for (fvit = mesh.fv_iter(facH); fvit.is_valid(); fvit++)
+		for (hvit = mesh.fh_iter(facH); hvit.is_valid(); hvit++)
 		{
-			verH2 = *fvit;				 //Vertex handle
+			heH = *hvit;
+			verH2 = mesh.from_vertex_handle(heH);
 			elems[indx] = verH2.idx();
-			indx++;
+			elems[indx + 1] = mesh.opposite_he_opposite_vh(heH).idx();
+			indx += 2;
 		}
 	}
  
@@ -229,7 +232,7 @@ void initialize()
 	glEnableVertexAttribArray(1);  // Vertex normal
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboID[2]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(short) * num_faces * 3, elems, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(short) * num_faces * 6, elems, GL_STATIC_DRAW);
 
 	glBindVertexArray(0);
 
