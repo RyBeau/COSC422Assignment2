@@ -1,14 +1,46 @@
 #version 330
+in vec2 TexCoord;
+in vec3 oPosition;
+in vec3 lgtVec;
+in vec3 normalVec;
+flat in int edgeVertex;
 
-in float diffTerm;
-uniform int textureMode;
+out vec4 outputColor;
 
-out vec4 outColor;
+/*
+    Calculates the output colour using the lighting vectors passed through from the Geometry Shader.
+    If fog is enabled it also calculates and applies the fog effect.
+    Specular reflections are applied only to water.
+    Water variation with depth is also calculated here.
+*/
+vec4 calculateOutputColor(){
 
-void main() 
-{
-   if(textureMode == 1)    //Wireframe
-       gl_FragColor = vec4(0, 0, 1, 1);
-   else			//Fill + lighting
-       gl_FragColor = diffTerm * vec4(0, 1, 1, 1);
+    //Water ambient and specular calculations
+    vec4 diffOut;
+    float diffTerm = max(dot(lgtVec, normalVec), 0.2);
+
+    if (diffTerm < 0){
+        diffOut = vec4(0.2, 0.2, 0.2, 1);
+    } else if (diffTerm > 0.7) {
+        diffOut = vec4(1, 1, 0, 1);
+    } else {
+        diffOut = vec4(0.5, 0.5, 0, 1);
+    }
+
+    return diffOut;
+}
+
+
+/*
+    Calls the output colour with the given texture for the vertex height. This will vary depending upon the
+    set snow and water levels.
+*/
+void main()
+{   
+    if (edgeVertex == 1) {
+        outputColor = vec4(0.0);
+    } else {
+        outputColor = calculateOutputColor();
+    }
+    
 }

@@ -136,10 +136,12 @@ void initialize()
 
 	//============= Load shaders ==================
 	GLuint shaderv = loadShader(GL_VERTEX_SHADER, "MeshViewer.vert");
+	GLuint shaderg = loadShader(GL_GEOMETRY_SHADER, "MeshViewer.geom");
 	GLuint shaderf = loadShader(GL_FRAGMENT_SHADER, "MeshViewer.frag");
 
 	GLuint program = glCreateProgram();
 	glAttachShader(program, shaderv);
+	glAttachShader(program, shaderg);
 	glAttachShader(program, shaderf);
 	glLinkProgram(program);
 
