@@ -30,7 +30,7 @@ float modelScale;
 float xc, yc, zc;
 float rotn_x = 0.0, rotn_y = 0.0;
 GLuint vaoID;
-GLuint mvpMatrixLoc, mvMatrixLoc, norMatrixLoc, lgtLoc, wireLoc, textureModeLoc;
+GLuint mvpMatrixLoc, mvMatrixLoc, norMatrixLoc, lgtLoc, wireLoc, textureModeLoc, texLoc;
 glm::mat4 view, projView;
 int num_Elems;
 bool wireframe = false;
@@ -52,7 +52,7 @@ bool textureMode = false;
 
 void loadTextures()
 {
-	const char* filename[3] = { "./Textures/PENCIL0.tga", "./Textures/PENCIL1.tga", "./TexturesPENCIL2.tga" };
+	const char* filename[3] = { "./Textures/PENCIL0.tga", "./Textures/PENCIL1.tga", "./Textures/PENCIL2.tga" };
 	GLuint texID[3];
 	glGenTextures(3, texID);
 
@@ -144,6 +144,9 @@ void initialize()
 	glAttachShader(program, shaderg);
 	glAttachShader(program, shaderf);
 	glLinkProgram(program);
+
+	//============= Load Textures ==================
+	loadTextures();
 
 	//============= Create program object ============
 	GLint status;
@@ -245,6 +248,8 @@ void initialize()
 	wireLoc = glGetUniformLocation(program, "wireMode");
 	lgtLoc = glGetUniformLocation(program, "lightPos");
 	textureModeLoc = glGetUniformLocation(program, "textureMode");
+	texLoc = glGetUniformLocation(program, "textureSampler");
+
 	glm::vec4 light = glm::vec4(5.0, 5.0, 10.0, 1.0);
 	glm::mat4 proj;
 	proj = glm::perspective(60.0f * CDR, 1.0f, 2.0f, 10.0f);  //perspective projection matrix
@@ -252,6 +257,8 @@ void initialize()
 	projView = proj * view;
 	glm::vec4 lightEye = view * light;
 	glUniform4fv(lgtLoc, 1, &lightEye[0]);
+	int texVals[3] = { 0, 1, 2 };
+	glUniform1iv(texLoc, 3, texVals);
 
 	//============== Initialize OpenGL state ==============
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -308,6 +315,8 @@ void display()
 
 	glm::mat4 invMatrix = glm::inverse(viewMatrix);  //Inverse of model-view matrix
 	glUniformMatrix4fv(norMatrixLoc, 1, GL_TRUE, &invMatrix[0][0]);
+
+	glUniform1i(textureModeLoc, textureMode);
 
 	if (wireframe) glUniform1i(wireLoc, 1);
 	else		   glUniform1i(wireLoc, 0);
