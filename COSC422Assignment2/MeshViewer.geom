@@ -104,6 +104,24 @@ void main(){
     {
         lightingCalculations(i);
         normalVec = vertNormal[i];
+        switch(i) {
+            case 0:
+                TexCoord.s = 0.0;
+                TexCoord.t = 0.0;
+                break;
+            case 2:
+                TexCoord.s = 0.5;
+                TexCoord.t = 0.0;
+
+
+                break;
+            case 4:
+                TexCoord.s = 0.25;
+                TexCoord.t = 0.5;
+                break;
+            default:
+                break;
+        }
         gl_Position = mvpMatrix * gl_in[i].gl_Position;
         EmitVertex();
     }

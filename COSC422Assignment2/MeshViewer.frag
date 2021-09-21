@@ -18,11 +18,9 @@ out vec4 outputColor;
     Water variation with depth is also calculated here.
 */
 vec4 calculateOutputColor(){
-    
+    vec4 diffOut;
+    float diffTerm = dot(lgtVec, normalVec);
     if (textureMode){
-        vec4 diffOut;
-        float diffTerm = max(dot(lgtVec, normalVec), 0.2);
-
         if (diffTerm < 0){
             diffOut = vec4(0.2, 0.2, 0.2, 1);
         } else if (diffTerm > 0.7) {
@@ -30,11 +28,17 @@ vec4 calculateOutputColor(){
         } else {
             diffOut = vec4(0.5, 0.5, 0, 1);
         }
-
-        return diffOut;
     } else {
-        return vec4(0);
+        if (diffTerm < 0.0){
+            diffOut = texture(textureSampler[2], TexCoord);
+        } else if (diffTerm > 0.7) {
+             diffOut = texture(textureSampler[0], TexCoord);
+        } else {
+            diffOut = texture(textureSampler[1], TexCoord);
+        }
     }
+
+    return diffOut;
 }
 
 

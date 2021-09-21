@@ -270,7 +270,7 @@ void initialize()
 
 //Adjsut the zoom on the mode by increasing/decreasing the scale factor.
 void adjustZoom(int direction) {
-	if ((direction < 0 && scaleFactor >= 1.0) || (direction > 0 && scaleFactor < 2.0)) {
+	if ((direction < 0 && scaleFactor >= 1.0) || (direction > 0 && scaleFactor < 10.0)) {
 		scaleFactor += 0.1 * direction;
 	}
 }
