@@ -126,7 +126,7 @@ void initialize()
 	float CDR = M_PI / 180.0f;
 
 	//============= Load mesh ==================
-	if (!OpenMesh::IO::read_mesh(mesh, "./Models/dolphin.obj"))
+	if (!OpenMesh::IO::read_mesh(mesh, "./Models/Dolphin.obj"))
 	{
 		cerr << "Mesh file read error.\n";
 	}

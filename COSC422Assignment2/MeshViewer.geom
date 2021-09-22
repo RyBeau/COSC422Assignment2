@@ -38,7 +38,7 @@ vec4 calculateFaceNormal(int targetIndex, int secondIndex, int thirdIndex){
 void addCreaseEdge(vec4 a, vec4 b, vec4 n1, vec4 n2){
     vec4 u = normalize(b - a);
     vec4 v = normalize(n1 + n2);
-    vec4 w = vec4(normalize(cross(vec3(u), vec3(v))), 0);
+    vec4 w = vec4(normalize(cross(vec3(u.xyz), vec3(v.xyz))), 0);
 
     vec4 p1 = a + creaseEdges[0] * v + creaseEdges[1] * w;
     vec4 p2 = a + creaseEdges[0] * v - creaseEdges[1] * w;
@@ -64,6 +64,7 @@ void addSilhoutteEdge(vec4 a, vec4 b, vec4 n1, vec4 n2){
     vec4 q2 = b + silEdges[1] * v;
 
     edgeVertex = 1;
+
     gl_Position = mvpMatrix * p1;
     EmitVertex();
     gl_Position = mvpMatrix * p2;
@@ -79,13 +80,12 @@ void addSilhoutteEdge(vec4 a, vec4 b, vec4 n1, vec4 n2){
     Calculates all the vectors needed for the lighting calculations in the fragment shader.
 */
 void lightingCalculations(int index){
-    if (index == 0 || index == 2 || index == 4){
-        vec4 adjFaceNormal = calculateFaceNormal(index, index + 1, (index + 2) % 6);
-        if ((mvMatrix * faceNormal).z > 0 && (mvMatrix * adjFaceNormal).z < 0){
-            addSilhoutteEdge(gl_in[index].gl_Position, gl_in[(index + 2) % 6].gl_Position, faceNormal, adjFaceNormal);
-        } else if (dot(faceNormal, adjFaceNormal) < T){
-            addCreaseEdge(gl_in[index].gl_Position, gl_in[(index + 2) % 6].gl_Position, faceNormal, adjFaceNormal);
-        }
+    vec4 adjFaceNormal = calculateFaceNormal(index, (index + 1) % 6, (index + 2) % 6);
+    if ((mvMatrix * faceNormal).z > 0 && (mvMatrix * adjFaceNormal).z < 0){
+        addSilhoutteEdge(gl_in[index].gl_Position, gl_in[(index + 2) % 6].gl_Position, faceNormal, adjFaceNormal);
+    }
+    if (dot(faceNormal, adjFaceNormal) < T){
+//        addCreaseEdge(gl_in[index].gl_Position, gl_in[(index + 2) % 6].gl_Position, faceNormal, adjFaceNormal);
     }
     vec4 posnEye = mvMatrix * gl_in[index].gl_Position;
     lgtVec = normalize(lightPos.xyz - posnEye.xyz);
@@ -96,30 +96,26 @@ void lightingCalculations(int index){
 void main(){
     faceNormal = calculateFaceNormal(0, 2, 4);
 	for(int i = 0; i < gl_in.length(); i++)
-    {
-        lightingCalculations(i);
-        normalVec = vertNormal[i];
-        switch(i) {
-            case 0:
+    {    
+        if (i == 0 || i == 2 || i == 4){
+            lightingCalculations(i);
+            normalVec = vertNormal[i];
+            if (i == 0) {
                 TexCoord.s = 0.0;
                 TexCoord.t = 0.0;
-                break;
-            case 2:
-                TexCoord.s = 0.5;
-                TexCoord.t = 0.0;
-
-
-                break;
-            case 4:
-                TexCoord.s = 0.25;
+            }
+            else if (i == 2) {
+                TexCoord.s = 1.0;
                 TexCoord.t = 0.5;
-                break;
-            default:
-                break;
+            }
+            else if (i == 4) {
+                TexCoord.s = 0.0;
+                TexCoord.t = 1.0;
+            }
+            edgeVertex = 0;
+            gl_Position = mvpMatrix * gl_in[i].gl_Position;
+            EmitVertex();
         }
-        gl_Position = mvpMatrix * gl_in[i].gl_Position;
-        edgeVertex = 0;
-        //EmitVertex();
     }
     EndPrimitive();
 }
