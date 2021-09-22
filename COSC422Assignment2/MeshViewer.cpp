@@ -56,15 +56,39 @@ glm::vec2 ds = glm::vec2(0, 3);
 
 void loadTextures()
 {
-	const char* filename[3] = { "./Textures/PENCIL0.tga", "./Textures/PENCIL1.tga", "./Textures/PENCIL2.tga" };
+	const char* filename[12] = { "./Textures/light64.tga", "./Textures/light32.tga", "./Textures/light16.tga", "./Textures/light8.tga",
+		"./Textures/mid64.tga", "./Textures/mid32.tga", "./Textures/mid16.tga", "./Textures/mid8.tga",
+		"./Textures/dark64.tga", "./Textures/dark32.tga", "./Textures/dark16.tga", "./Textures/dark8.tga" };
 	GLuint texID[3];
 	glGenTextures(3, texID);
 
 	for (int i = 0; i < 3; i++)
 	{
-		glActiveTexture(GL_TEXTURE0 + i);  //Texture unit
-		glBindTexture(GL_TEXTURE_2D, texID[i]);
-		loadTGA(filename[i]);
+		glActiveTexture(GL_TEXTURE0);  //Texture unit
+		glBindTexture(GL_TEXTURE_2D, texID[0]);
+		loadTGA(filename[i], i);
+
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		glActiveTexture(GL_TEXTURE1);  //Texture unit
+		glBindTexture(GL_TEXTURE_2D, texID[1]);
+		loadTGA(filename[i + 5], i);
+
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		glActiveTexture(GL_TEXTURE2);  //Texture unit
+		glBindTexture(GL_TEXTURE_2D, texID[2]);
+		loadTGA(filename[i + 9], i);
 
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
