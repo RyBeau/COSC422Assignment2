@@ -51,7 +51,7 @@ bool textureMode = false;
 
 //Edge Sizes
 glm::vec2 dc = glm::vec2(1, 1);
-glm::vec2 ds = glm::vec2(0, 1);
+glm::vec2 ds = glm::vec2(0, 0);
 
 
 void loadTextures()

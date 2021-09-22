@@ -23,7 +23,7 @@ flat out int edgeVertex;
 vec4 faceNormal;
 
 float PI = 3.14159265;
-float T = cos(50 * PI / 180.0);
+float T = cos(20 * PI / 180.0);
 
 /*
     Calculates all the vectors needed for the lighting calculations in the fragment shader.
@@ -53,6 +53,7 @@ void addCreaseEdge(vec4 a, vec4 b, vec4 n1, vec4 n2){
     EmitVertex();
     gl_Position = mvpMatrix * q2;
     EmitVertex();
+    EndPrimitive();
 }
 
 void addSilhoutteEdge(vec4 a, vec4 b, vec4 n1, vec4 n2){
@@ -71,6 +72,7 @@ void addSilhoutteEdge(vec4 a, vec4 b, vec4 n1, vec4 n2){
     EmitVertex();
     gl_Position = mvpMatrix * q2;
     EmitVertex();
+    EndPrimitive();
 }
 
 /*
@@ -119,4 +121,5 @@ void main(){
         edgeVertex = 0;
         //EmitVertex();
     }
+    EndPrimitive();
 }
