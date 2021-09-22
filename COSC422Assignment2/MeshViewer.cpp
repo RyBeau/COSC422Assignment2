@@ -30,7 +30,7 @@ float modelScale;
 float xc, yc, zc;
 float rotn_x = 0.0, rotn_y = 0.0;
 GLuint vaoID;
-GLuint mvpMatrixLoc, mvMatrixLoc, norMatrixLoc, lgtLoc, wireLoc, textureModeLoc, texLoc;
+GLuint mvpMatrixLoc, mvMatrixLoc, norMatrixLoc, lgtLoc, wireLoc, textureModeLoc, texLoc, silLoc, creaseLoc;
 glm::mat4 view, projView;
 int num_Elems;
 bool wireframe = false;
@@ -48,6 +48,10 @@ float scaleFactor = 1.0;
 
 //Texture Globals
 bool textureMode = false;
+
+//Edge Sizes
+glm::vec2 dc = glm::vec2(1, 1);
+glm::vec2 ds = glm::vec2(0, 1);
 
 
 void loadTextures()
@@ -249,6 +253,8 @@ void initialize()
 	lgtLoc = glGetUniformLocation(program, "lightPos");
 	textureModeLoc = glGetUniformLocation(program, "textureMode");
 	texLoc = glGetUniformLocation(program, "textureSampler");
+	creaseLoc = glGetUniformLocation(program, "creaseEdges");
+	silLoc = glGetUniformLocation(program, "silEdges");
 
 	glm::vec4 light = glm::vec4(5.0, 5.0, 10.0, 1.0);
 	glm::mat4 proj;
@@ -275,6 +281,14 @@ void adjustZoom(int direction) {
 	}
 }
 
+void changeSilEdges(int direction) {
+	ds[1] += 0.1 * direction;
+}
+
+void changeCreaseEdges(int direction) {
+	dc += 0.1 * direction;
+}
+
 //Callback function for special keyboard events
 void special(int key, int x, int y)
 {
@@ -290,10 +304,11 @@ void special(int key, int x, int y)
 //Callback function for keyboard events
 void keyboard(unsigned char key, int x, int y)
 {
-	if (key == 'w') wireframe = !wireframe;
 	if (key == ' ') textureMode = !textureMode;
-	if(wireframe) 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	else 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	if (key == 'q') changeSilEdges(1);
+	if (key == 'a') changeSilEdges(-1);
+	if (key == 'w') changeCreaseEdges(1);
+	if (key == 's') changeCreaseEdges(-1);
 	glutPostRedisplay();
 }
 
@@ -316,7 +331,12 @@ void display()
 	glm::mat4 invMatrix = glm::inverse(viewMatrix);  //Inverse of model-view matrix
 	glUniformMatrix4fv(norMatrixLoc, 1, GL_TRUE, &invMatrix[0][0]);
 
+	//Texture mode
 	glUniform1i(textureModeLoc, textureMode);
+	//Edge sizes
+	glUniform2fv(silLoc, 1, &ds[0]);
+	glUniform2fv(creaseLoc, 1, &dc[0]);
+
 
 	if (wireframe) glUniform1i(wireLoc, 1);
 	else		   glUniform1i(wireLoc, 0);

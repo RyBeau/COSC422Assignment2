@@ -6,6 +6,8 @@ layout (triangle_strip , max_vertices = 27) out;
 uniform mat4 mvMatrix;
 uniform mat4 mvpMatrix;
 uniform vec4 lightPos;
+uniform vec2 creaseEdges;
+uniform vec2 silEdges;
 
 in vec3 vertNormal[];
 out vec3 normalVec;
@@ -19,12 +21,6 @@ out vec4 halfVec;
 flat out int edgeVertex;
 
 vec4 faceNormal;
-
-float d1_c = 0.5;
-float d2_c = 1;
-
-float d1_s = 0.1;
-float d2_s = 3;
 
 float PI = 3.14159265;
 float T = cos(50 * PI / 180.0);
@@ -44,10 +40,10 @@ void addCreaseEdge(vec4 a, vec4 b, vec4 n1, vec4 n2){
     vec4 v = normalize(n1 + n2);
     vec4 w = vec4(normalize(cross(vec3(u), vec3(v))), 0);
 
-    vec4 p1 = a + d1_c * v + d2_c * w;
-    vec4 p2 = a + d1_c * v - d2_c * w;
-    vec4 q1 = b + d1_c * v + d2_c * w;
-    vec4 q2 = b + d1_c * v + d2_c * w;
+    vec4 p1 = a + creaseEdges[0] * v + creaseEdges[1] * w;
+    vec4 p2 = a + creaseEdges[0] * v - creaseEdges[1] * w;
+    vec4 q1 = b + creaseEdges[0] * v + creaseEdges[1] * w;
+    vec4 q2 = b + creaseEdges[0] * v - creaseEdges[1] * w;
     edgeVertex = 1;
     gl_Position = mvpMatrix * p1;
     EmitVertex();
@@ -57,15 +53,14 @@ void addCreaseEdge(vec4 a, vec4 b, vec4 n1, vec4 n2){
     EmitVertex();
     gl_Position = mvpMatrix * q2;
     EmitVertex();
-    edgeVertex = 0;
 }
 
 void addSilhoutteEdge(vec4 a, vec4 b, vec4 n1, vec4 n2){
     vec4 v = normalize(n1 + n2);
-    vec4 p1 = a + d1_s * v;
-    vec4 p2 = a + d2_s * v;
-    vec4 q1 = b + d1_s * v;
-    vec4 q2 = b + d2_s * v;
+    vec4 p1 = a + silEdges[0] * v;
+    vec4 p2 = a + silEdges[1] * v;
+    vec4 q1 = b + silEdges[0] * v;
+    vec4 q2 = b + silEdges[1] * v;
 
     edgeVertex = 1;
     gl_Position = mvpMatrix * p1;
@@ -76,7 +71,6 @@ void addSilhoutteEdge(vec4 a, vec4 b, vec4 n1, vec4 n2){
     EmitVertex();
     gl_Position = mvpMatrix * q2;
     EmitVertex();
-    edgeVertex = 0;
 }
 
 /*
@@ -85,7 +79,7 @@ void addSilhoutteEdge(vec4 a, vec4 b, vec4 n1, vec4 n2){
 void lightingCalculations(int index){
     if (index == 0 || index == 2 || index == 4){
         vec4 adjFaceNormal = calculateFaceNormal(index, index + 1, (index + 2) % 6);
-        if ((mvpMatrix * faceNormal).z > 0 && (mvpMatrix * adjFaceNormal).z < 0){
+        if ((mvMatrix * faceNormal).z > 0 && (mvMatrix * adjFaceNormal).z < 0){
             addSilhoutteEdge(gl_in[index].gl_Position, gl_in[(index + 2) % 6].gl_Position, faceNormal, adjFaceNormal);
         } else if (dot(faceNormal, adjFaceNormal) < T){
             addCreaseEdge(gl_in[index].gl_Position, gl_in[(index + 2) % 6].gl_Position, faceNormal, adjFaceNormal);
@@ -98,7 +92,6 @@ void lightingCalculations(int index){
 
 
 void main(){
-    edgeVertex = 0;
     faceNormal = calculateFaceNormal(0, 2, 4);
 	for(int i = 0; i < gl_in.length(); i++)
     {
@@ -123,6 +116,7 @@ void main(){
                 break;
         }
         gl_Position = mvpMatrix * gl_in[i].gl_Position;
-        EmitVertex();
+        edgeVertex = 0;
+        //EmitVertex();
     }
 }
