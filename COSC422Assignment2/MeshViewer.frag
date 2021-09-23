@@ -34,7 +34,13 @@ vec4 calculateOutputColor(){
         } else if (diffTerm > 0.7) {
              diffOut = texture(textureSampler[0], TexCoord);
         } else {
-            diffOut = texture(textureSampler[1], TexCoord);
+            if (diffTerm > 0.35){
+                diffOut = mix(texture(textureSampler[1], TexCoord), texture(textureSampler[0], TexCoord), (diffTerm - 0.35) / 0.35);
+            } else if (diffTerm < 0.175){
+                diffOut = mix(texture(textureSampler[2], TexCoord), texture(textureSampler[1], TexCoord), (diffTerm) / 0.175);
+            } else {
+                diffOut = texture(textureSampler[1], TexCoord);
+            }    
         }
     }
 
