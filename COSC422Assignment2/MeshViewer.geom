@@ -64,7 +64,6 @@ void addSilhoutteEdge(vec4 a, vec4 b, vec4 n1, vec4 n2){
     vec4 q2 = b + silEdges[1] * v;
 
     edgeVertex = 1;
-
     gl_Position = mvpMatrix * p1;
     EmitVertex();
     gl_Position = mvpMatrix * p2;
@@ -76,10 +75,7 @@ void addSilhoutteEdge(vec4 a, vec4 b, vec4 n1, vec4 n2){
     EndPrimitive();
 }
 
-/*
-    Calculates all the vectors needed for the lighting calculations in the fragment shader.
-*/
-void lightingCalculations(int index){
+void edgesCalculations(int index){
     vec4 adjFaceNormal = calculateFaceNormal(index, (index + 1) % 6, (index + 2) % 6);
     if ((mvMatrix * faceNormal).z > 0 && (mvMatrix * adjFaceNormal).z < 0){
         addSilhoutteEdge(gl_in[index].gl_Position, gl_in[(index + 2) % 6].gl_Position, faceNormal, adjFaceNormal);
@@ -87,10 +83,17 @@ void lightingCalculations(int index){
     if (dot(faceNormal, adjFaceNormal) < T){
 //        addCreaseEdge(gl_in[index].gl_Position, gl_in[(index + 2) % 6].gl_Position, faceNormal, adjFaceNormal);
     }
+}
+
+/*
+    Calculates all the vectors needed for the lighting calculations in the fragment shader.
+*/
+void lightingCalculations(int index){
     vec4 posnEye = mvMatrix * gl_in[index].gl_Position;
     lgtVec = normalize(lightPos.xyz - posnEye.xyz);
     vec4 viewVec = normalize(vec4(-posnEye.xyz, 0));
 }
+
 
 
 void main(){
@@ -99,6 +102,7 @@ void main(){
     {    
         if (i == 0 || i == 2 || i == 4){
             lightingCalculations(i);
+            edgesCalculations(i);
             normalVec = vertNormal[i];
             if (i == 0) {
                 TexCoord.s = 0.0;
@@ -115,7 +119,7 @@ void main(){
             edgeVertex = 0;
             gl_Position = mvpMatrix * gl_in[i].gl_Position;
             EmitVertex();
-        }
+            }
     }
     EndPrimitive();
 }
