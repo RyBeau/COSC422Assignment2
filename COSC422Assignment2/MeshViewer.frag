@@ -12,10 +12,7 @@ flat in int edgeVertex;
 out vec4 outputColor;
 
 /*
-    Calculates the output colour using the lighting vectors passed through from the Geometry Shader.
-    If fog is enabled it also calculates and applies the fog effect.
-    Specular reflections are applied only to water.
-    Water variation with depth is also calculated here.
+    Calculates the output colour for the fragment.
 */
 vec4 calculateOutputColor(){
     vec4 diffOut;
@@ -49,8 +46,8 @@ vec4 calculateOutputColor(){
 
 
 /*
-    Calls the output colour with the given texture for the vertex height. This will vary depending upon the
-    set snow and water levels.
+    Calls output colour if the edgeVertex flag is not 1, otherwise
+    the outputColor is set to black as the fragment is an edge.
 */
 void main()
 {   

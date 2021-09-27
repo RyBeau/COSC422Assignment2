@@ -7,6 +7,7 @@ uniform mat4 mvMatrix;
 uniform mat4 mvpMatrix;
 uniform vec4 lightPos;
 
+//Toggles for various features
 uniform int enableCrease;
 uniform int enableSil;
 uniform int enableFill;
@@ -16,15 +17,16 @@ uniform int enableOverlap;
 uniform vec2 creaseEdges;
 uniform vec2 silEdges;
 
+//Vertex normal passthrough from the Vertex shader
 in vec3 vertNormal[];
 out vec3 normalVec;
 
 out vec3 oPosition;
 out vec2 TexCoord;
 out vec3 lgtVec;
-out vec4 normalEye;
 out vec4 halfVec;
 
+//Indicator out variable for the fragment shader
 flat out int edgeVertex;
 
 vec4 faceNormal;
@@ -42,6 +44,9 @@ vec4 calculateFaceNormal(int targetIndex, int secondIndex, int thirdIndex){
     return vec4(normalize(cross(vector1, vector2)), 0);
 }
 
+/*
+    Calculates the Crease edges and emits the vertices
+*/
 void addCreaseEdge(vec4 a, vec4 b, vec4 n1, vec4 n2){
     vec4 u = normalize(b - a);
     vec4 v = normalize(n1 + n2);
@@ -63,6 +68,10 @@ void addCreaseEdge(vec4 a, vec4 b, vec4 n1, vec4 n2){
     EndPrimitive();
 }
 
+
+/**
+    Calculates vertices for the silhoutte edges and emits their vertices
+*/
 void addSilhoutteEdge(vec4 a, vec4 b, vec4 n1, vec4 n2){
     vec4 v = normalize(n1 + n2);
    
@@ -94,6 +103,10 @@ void addSilhoutteEdge(vec4 a, vec4 b, vec4 n1, vec4 n2){
     EndPrimitive();
 }
 
+/*
+    Calculates if the edge formed by the vertices at i and i + 2 % 6 is a silhoutte edge
+    or crease edge. It will call the functions to add the edges if needed.
+*/
 void edgesCalculations(int index){
     vec4 adjFaceNormal = calculateFaceNormal(index, (index + 1) % 6, (index + 2) % 6);
     if (enableSil == 1) {
@@ -148,7 +161,7 @@ void main(){
         }
         EndPrimitive();
     }
-
+    //For loop for crease and silhoutte edges
     for(int i = 0; i < gl_in.length(); i++)
     {
         if (i == 0 || i == 2 || i == 4){
