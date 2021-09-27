@@ -40,7 +40,7 @@ bool textureMode = false;
 
 //Edge Sizes
 glm::vec2 dc = glm::vec2(1, 1);
-glm::vec2 ds = glm::vec2(0, 3);
+glm::vec2 ds = glm::vec2(0, 4);
 
 //Crease Edge Threshold
 float creaseEdgeThreshold = 20;
