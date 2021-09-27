@@ -1,15 +1,3 @@
-//  ========================================================================
-//  COSC422: Advanced Computer Graphics;  University of Canterbury (2021)
-//
-//  FILE NAME: MeshViewer.cpp
-//  Triangle mesh viewer using OpenMesh and OpenGL-4
-//  This program assumes that the mesh consists of only triangles.
-//  The model is scaled and translated to the origin to fit within the view frustum
-//
-//  Use arrow keys to rotate the model
-//  Use 'w' key to toggle between wireframe and solid fill modes
-//  ========================================================================
-
 #define _USE_MATH_DEFINES // for C++  
 #include <cmath>  
 #include <iostream>
@@ -30,7 +18,7 @@ float modelScale;
 float xc, yc, zc;
 float rotn_x = 0.0, rotn_y = 0.0;
 GLuint vaoID;
-GLuint mvpMatrixLoc, mvMatrixLoc, norMatrixLoc, lgtLoc, wireLoc, 
+GLuint mvpMatrixLoc, mvMatrixLoc, norMatrixLoc, lgtLoc, wireLoc, creaseEdgeThresholdLoc,
 textureModeLoc, texLoc, silLoc, creaseLoc, enableSilLoc, enableCreaseLoc, enableFillLoc, enableOverlapLoc;
 glm::mat4 view, projView;
 int num_Elems;
@@ -54,13 +42,18 @@ bool textureMode = false;
 glm::vec2 dc = glm::vec2(1, 1);
 glm::vec2 ds = glm::vec2(0, 3);
 
+//Crease Edge Threshold
+float creaseEdgeThreshold = 20;
+
 //Toggle Globals
 bool toggleSilEdges = true;
 bool toggleCreaseEdges = true;
 bool toggleFill = true;
 bool toggleOverlap = true;
 
-
+/*
+	Loads the mip map textures.
+*/
 void loadTextures()
 {
 	const char* filename[12] = { "./Textures/light64.tga", "./Textures/light32.tga", "./Textures/light16.tga", "./Textures/light8.tga",
@@ -69,6 +62,7 @@ void loadTextures()
 	GLuint texID[3];
 	glGenTextures(3, texID);
 
+	//Loads the light textures
 	for (int i = 0; i < 3; i++)
 	{
 		glActiveTexture(GL_TEXTURE0);  //Texture unit
@@ -79,7 +73,7 @@ void loadTextures()
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
-
+	//Loads the mid textures
 	for (int i = 0; i < 3; i++)
 	{
 		glActiveTexture(GL_TEXTURE1);  //Texture unit
@@ -90,7 +84,7 @@ void loadTextures()
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
-
+	//Loads the dark textures
 	for (int i = 0; i < 3; i++)
 	{
 		glActiveTexture(GL_TEXTURE2);  //Texture unit
@@ -237,7 +231,8 @@ void initialize()
 		}
 	}
 
-	//Use a face iterator to get the vertex indices for each face
+	//Use a face iterator and a half edge iterator to get the vertex indices for each triangle
+	// adjacency primitive
 	indx = 0;
 	for (fit = mesh.faces_begin(); fit != mesh.faces_end(); fit++)
 	{
@@ -290,6 +285,7 @@ void initialize()
 	enableSilLoc = glGetUniformLocation(program, "enableSil");
 	enableFillLoc = glGetUniformLocation(program, "enableFill");
 	enableOverlapLoc = glGetUniformLocation(program, "enableOverlap");
+	creaseEdgeThresholdLoc = glGetUniformLocation(program, "creaseEdgeThreshold");
 
 	glm::vec4 light = glm::vec4(5.0, 5.0, 10.0, 1.0);
 	glm::mat4 proj;
@@ -309,19 +305,26 @@ void initialize()
 }
 
 
-//Adjsut the zoom on the mode by increasing/decreasing the scale factor.
+//Adjust the zoom on the mode by increasing/decreasing the scale factor.
 void adjustZoom(int direction) {
 	if ((direction < 0 && scaleFactor >= 1.0) || (direction > 0 && scaleFactor < 10.0)) {
 		scaleFactor += 0.1 * direction;
 	}
 }
 
+//Changes the crease edges size by 0.1 times the direction
 void changeSilEdges(int direction) {
 	ds[1] += 0.1 * direction;
 }
 
+//Changes the crease edges size by 0.1 times the direction
 void changeCreaseEdges(int direction) {
 	dc[1] += 0.1 * direction;
+}
+
+//Changes the crease edges threshold by 1 in the given direction
+void changeCreaseEdgeThreshold(int direction) {
+	creaseEdgeThreshold += 1 * direction;
 }
 
 //Callback function for special keyboard events
@@ -344,6 +347,8 @@ void keyboard(unsigned char key, int x, int y)
 	if (key == 'a') changeSilEdges(-1);
 	if (key == 'w') changeCreaseEdges(1);
 	if (key == 's') changeCreaseEdges(-1);
+	if (key == 'e') changeCreaseEdgeThreshold(1);
+	if (key == 'd') changeCreaseEdgeThreshold(-1);
 	if (key == '1') toggleCreaseEdges = !toggleCreaseEdges;
 	if (key == '2') toggleSilEdges = !toggleSilEdges;
 	if (key == '3') toggleFill = !toggleFill;
@@ -375,6 +380,8 @@ void display()
 	//Edge sizes
 	glUniform2fv(silLoc, 1, &ds[0]);
 	glUniform2fv(creaseLoc, 1, &dc[0]);
+	//Crease Threshold
+	glUniform1f(creaseEdgeThresholdLoc, creaseEdgeThreshold);
 	//Toggle Fill and Edges
 	glUniform1i(enableCreaseLoc, toggleCreaseEdges);
 	glUniform1i(enableSilLoc, toggleSilEdges);

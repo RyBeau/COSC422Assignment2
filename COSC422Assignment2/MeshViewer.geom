@@ -13,6 +13,9 @@ uniform int enableSil;
 uniform int enableFill;
 uniform int enableOverlap;
 
+//Crease Edge Threshold
+uniform float creaseEdgeThreshold;
+
 //D1 and D2 in vector form
 uniform vec2 creaseEdges;
 uniform vec2 silEdges;
@@ -32,7 +35,7 @@ flat out int edgeVertex;
 vec4 faceNormal;
 
 float PI = 3.14159265;
-float T = cos(20 * PI / 180.0);
+float T = cos(creaseEdgeThreshold * PI / 180.0);
 
 /*
     Calculates all the vectors needed for the lighting calculations in the fragment shader.
