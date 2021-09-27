@@ -30,7 +30,8 @@ float modelScale;
 float xc, yc, zc;
 float rotn_x = 0.0, rotn_y = 0.0;
 GLuint vaoID;
-GLuint mvpMatrixLoc, mvMatrixLoc, norMatrixLoc, lgtLoc, wireLoc, textureModeLoc, texLoc, silLoc, creaseLoc;
+GLuint mvpMatrixLoc, mvMatrixLoc, norMatrixLoc, lgtLoc, wireLoc, 
+textureModeLoc, texLoc, silLoc, creaseLoc, enableSilLoc, enableCreaseLoc, enableFillLoc;
 glm::mat4 view, projView;
 int num_Elems;
 bool wireframe = false;
@@ -52,6 +53,11 @@ bool textureMode = false;
 //Edge Sizes
 glm::vec2 dc = glm::vec2(1, 1);
 glm::vec2 ds = glm::vec2(0, 3);
+
+//Toggle Globals
+bool toggleSilEdges = true;
+bool toggleCreaseEdges = true;
+bool toggleFill = true;
 
 
 void loadTextures()
@@ -279,6 +285,9 @@ void initialize()
 	texLoc = glGetUniformLocation(program, "textureSampler");
 	creaseLoc = glGetUniformLocation(program, "creaseEdges");
 	silLoc = glGetUniformLocation(program, "silEdges");
+	enableCreaseLoc = glGetUniformLocation(program, "enableCrease");
+	enableSilLoc = glGetUniformLocation(program, "enableSil");
+	enableFillLoc = glGetUniformLocation(program, "enableFill");
 
 	glm::vec4 light = glm::vec4(5.0, 5.0, 10.0, 1.0);
 	glm::mat4 proj;
@@ -333,6 +342,9 @@ void keyboard(unsigned char key, int x, int y)
 	if (key == 'a') changeSilEdges(-1);
 	if (key == 'w') changeCreaseEdges(1);
 	if (key == 's') changeCreaseEdges(-1);
+	if (key == '1') toggleCreaseEdges = !toggleCreaseEdges;
+	if (key == '2') toggleSilEdges = !toggleSilEdges;
+	if (key == '3') toggleFill = !toggleFill;
 	glutPostRedisplay();
 }
 
@@ -360,7 +372,10 @@ void display()
 	//Edge sizes
 	glUniform2fv(silLoc, 1, &ds[0]);
 	glUniform2fv(creaseLoc, 1, &dc[0]);
-
+	//Toggle Fill and Edges
+	glUniform1i(enableCreaseLoc, toggleCreaseEdges);
+	glUniform1i(enableSilLoc, toggleSilEdges);
+	glUniform1i(enableFillLoc, toggleFill);
 
 	if (wireframe) glUniform1i(wireLoc, 1);
 	else		   glUniform1i(wireLoc, 0);

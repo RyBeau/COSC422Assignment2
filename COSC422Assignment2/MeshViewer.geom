@@ -6,6 +6,12 @@ layout (triangle_strip , max_vertices = 27) out;
 uniform mat4 mvMatrix;
 uniform mat4 mvpMatrix;
 uniform vec4 lightPos;
+
+uniform int enableCrease;
+uniform int enableSil;
+uniform int enableFill;
+
+//D1 and D2 in vector form
 uniform vec2 creaseEdges;
 uniform vec2 silEdges;
 
@@ -77,11 +83,16 @@ void addSilhoutteEdge(vec4 a, vec4 b, vec4 n1, vec4 n2){
 
 void edgesCalculations(int index){
     vec4 adjFaceNormal = calculateFaceNormal(index, (index + 1) % 6, (index + 2) % 6);
-    if ((mvMatrix * faceNormal).z > 0 && (mvMatrix * adjFaceNormal).z < 0){
-        addSilhoutteEdge(gl_in[index].gl_Position, gl_in[(index + 2) % 6].gl_Position, faceNormal, adjFaceNormal);
+    if (enableSil == 1) {
+        if ((mvMatrix * faceNormal).z > 0 && (mvMatrix * adjFaceNormal).z < 0){
+            addSilhoutteEdge(gl_in[index].gl_Position, gl_in[(index + 2) % 6].gl_Position, faceNormal, adjFaceNormal);
+        }
     }
-    if (dot(faceNormal, adjFaceNormal) < T){
-//        addCreaseEdge(gl_in[index].gl_Position, gl_in[(index + 2) % 6].gl_Position, faceNormal, adjFaceNormal);
+
+    if (enableCrease == 1) {
+        if (dot(faceNormal, adjFaceNormal) < T){
+            addCreaseEdge(gl_in[index].gl_Position, gl_in[(index + 2) % 6].gl_Position, faceNormal, adjFaceNormal);
+        }
     }
 }
 
@@ -98,28 +109,37 @@ void lightingCalculations(int index){
 
 void main(){
     faceNormal = calculateFaceNormal(0, 2, 4);
-	for(int i = 0; i < gl_in.length(); i++)
-    {    
-        if (i == 0 || i == 2 || i == 4){
-            lightingCalculations(i);
-            edgesCalculations(i);
-            normalVec = vertNormal[i];
-            if (i == 0) {
-                TexCoord.s = 0.0;
-                TexCoord.t = 0.0;
-            }
-            else if (i == 2) {
-                TexCoord.s = 1.0;
-                TexCoord.t = 0.5;
-            }
-            else if (i == 4) {
-                TexCoord.s = 0.0;
-                TexCoord.t = 1.0;
-            }
-            edgeVertex = 0;
-            gl_Position = mvpMatrix * gl_in[i].gl_Position;
-            EmitVertex();
-            }
+    if (enableFill == 1) {
+    	for(int i = 0; i < gl_in.length(); i++)
+        {    
+            if (i == 0 || i == 2 || i == 4){
+                lightingCalculations(i);
+            
+                normalVec = vertNormal[i];
+                if (i == 0) {
+                    TexCoord.s = 0.0;
+                    TexCoord.t = 0.0;
+                }
+                else if (i == 2) {
+                    TexCoord.s = 1.0;
+                    TexCoord.t = 0.5;
+                }
+                else if (i == 4) {
+                    TexCoord.s = 0.0;
+                    TexCoord.t = 1.0;
+                }
+                edgeVertex = 0;
+                gl_Position = mvpMatrix * gl_in[i].gl_Position;
+                EmitVertex();
+                }
+        }
+        EndPrimitive();
     }
-    EndPrimitive();
+
+    for(int i = 0; i < gl_in.length(); i++)
+    {
+        if (i == 0 || i == 2 || i == 4){
+            edgesCalculations(i);
+        }
+    }
 }
