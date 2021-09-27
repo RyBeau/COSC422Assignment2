@@ -31,7 +31,7 @@ float xc, yc, zc;
 float rotn_x = 0.0, rotn_y = 0.0;
 GLuint vaoID;
 GLuint mvpMatrixLoc, mvMatrixLoc, norMatrixLoc, lgtLoc, wireLoc, 
-textureModeLoc, texLoc, silLoc, creaseLoc, enableSilLoc, enableCreaseLoc, enableFillLoc;
+textureModeLoc, texLoc, silLoc, creaseLoc, enableSilLoc, enableCreaseLoc, enableFillLoc, enableOverlapLoc;
 glm::mat4 view, projView;
 int num_Elems;
 bool wireframe = false;
@@ -58,6 +58,7 @@ glm::vec2 ds = glm::vec2(0, 3);
 bool toggleSilEdges = true;
 bool toggleCreaseEdges = true;
 bool toggleFill = true;
+bool toggleOverlap = true;
 
 
 void loadTextures()
@@ -288,6 +289,7 @@ void initialize()
 	enableCreaseLoc = glGetUniformLocation(program, "enableCrease");
 	enableSilLoc = glGetUniformLocation(program, "enableSil");
 	enableFillLoc = glGetUniformLocation(program, "enableFill");
+	enableOverlapLoc = glGetUniformLocation(program, "enableOverlap");
 
 	glm::vec4 light = glm::vec4(5.0, 5.0, 10.0, 1.0);
 	glm::mat4 proj;
@@ -345,6 +347,7 @@ void keyboard(unsigned char key, int x, int y)
 	if (key == '1') toggleCreaseEdges = !toggleCreaseEdges;
 	if (key == '2') toggleSilEdges = !toggleSilEdges;
 	if (key == '3') toggleFill = !toggleFill;
+	if (key == 'o') toggleOverlap = !toggleOverlap;
 	glutPostRedisplay();
 }
 
@@ -376,6 +379,7 @@ void display()
 	glUniform1i(enableCreaseLoc, toggleCreaseEdges);
 	glUniform1i(enableSilLoc, toggleSilEdges);
 	glUniform1i(enableFillLoc, toggleFill);
+	glUniform1i(enableOverlapLoc, toggleOverlap);
 
 	if (wireframe) glUniform1i(wireLoc, 1);
 	else		   glUniform1i(wireLoc, 0);

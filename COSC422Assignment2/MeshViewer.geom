@@ -10,6 +10,7 @@ uniform vec4 lightPos;
 uniform int enableCrease;
 uniform int enableSil;
 uniform int enableFill;
+uniform int enableOverlap;
 
 //D1 and D2 in vector form
 uniform vec2 creaseEdges;
@@ -64,10 +65,22 @@ void addCreaseEdge(vec4 a, vec4 b, vec4 n1, vec4 n2){
 
 void addSilhoutteEdge(vec4 a, vec4 b, vec4 n1, vec4 n2){
     vec4 v = normalize(n1 + n2);
-    vec4 p1 = a + silEdges[0] * v;
-    vec4 p2 = a + silEdges[1] * v;
-    vec4 q1 = b + silEdges[0] * v;
-    vec4 q2 = b + silEdges[1] * v;
+   
+   vec4 p1, p2, q1, q2;
+
+    if (enableOverlap == 1){
+        vec4 a_to_b = 3 * normalize(b - a);
+        vec4 b_to_a = 3 * normalize(a - b);
+        p1 = (a + b_to_a) + silEdges[0] * v;
+        p2 = (a + b_to_a) + silEdges[1] * v;
+        q1 = (b + a_to_b) + silEdges[0] * v;
+        q2 = (b + a_to_b) + silEdges[1] * v;
+    } else {
+        p1 = a + silEdges[0] * v;
+        p2 = a + silEdges[1] * v;
+        q1 = b + silEdges[0] * v;
+        q2 = b + silEdges[1] * v;
+    }
 
     edgeVertex = 1;
     gl_Position = mvpMatrix * p1;
